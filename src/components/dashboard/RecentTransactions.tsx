@@ -10,8 +10,7 @@ const transactions = [
     amount: 4250.00,
     type: "income",
     category: "Salary",
-    date: "Today",
-    time: "2:30 PM"
+    date: "Today"
   },
   {
     id: 2,
@@ -19,8 +18,7 @@ const transactions = [
     amount: -127.45,
     type: "expense",
     category: "Food",
-    date: "Yesterday",
-    time: "6:15 PM"
+    date: "Yesterday"
   },
   {
     id: 3,
@@ -28,8 +26,7 @@ const transactions = [
     amount: -15.99,
     type: "expense",
     category: "Entertainment",
-    date: "Dec 28",
-    time: "12:00 AM"
+    date: "Dec 28"
   },
   {
     id: 4,
@@ -37,8 +34,7 @@ const transactions = [
     amount: 245.80,
     type: "income",
     category: "Investment",
-    date: "Dec 27",
-    time: "9:45 AM"
+    date: "Dec 27"
   },
   {
     id: 5,
@@ -46,8 +42,7 @@ const transactions = [
     amount: -89.32,
     type: "expense",
     category: "Utilities",
-    date: "Dec 26",
-    time: "3:20 PM"
+    date: "Dec 26"
   }
 ];
 
@@ -71,10 +66,10 @@ export const RecentTransactions = () => {
           View All
         </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {transactions.map((transaction) => (
-          <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/20 transition-colors">
-            <div className="flex items-center space-x-4">
+          <div key={transaction.id} className="flex items-center justify-between py-2">
+            <div className="flex items-center space-x-3">
               <div className={`p-2 rounded-full ${transaction.type === 'income' ? 'bg-success/10' : 'bg-expense/10'}`}>
                 {transaction.type === 'income' ? (
                   <ArrowDownLeft className="w-4 h-4 text-success" />
@@ -82,30 +77,16 @@ export const RecentTransactions = () => {
                   <ArrowUpRight className="w-4 h-4 text-expense" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {transaction.description}
-                </p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Badge variant="outline" className={`text-xs ${getCategoryColor(transaction.category)}`}>
-                    {transaction.category}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {transaction.date} • {transaction.time}
-                  </span>
-                </div>
+              <div>
+                <p className="font-medium text-sm">{transaction.description}</p>
+                <p className="text-xs text-muted-foreground">{transaction.date}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className={`text-sm font-semibold ${
-                transaction.amount > 0 ? 'text-success' : 'text-expense'
-              }`}>
-                {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
-              </span>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </div>
+            <span className={`font-semibold ${
+              transaction.amount > 0 ? 'text-success' : 'text-expense'
+            }`}>
+              {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
+            </span>
           </div>
         ))}
       </CardContent>
