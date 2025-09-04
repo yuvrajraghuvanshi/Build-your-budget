@@ -57,8 +57,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .from('profiles')
         .insert([{
           id: data.user.id,
-          first_name: firstName,
-          last_name: lastName,
           preferred_currency: 'USD' // Default currency
         }]);
     }
