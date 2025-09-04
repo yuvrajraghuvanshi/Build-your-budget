@@ -40,8 +40,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     const redirectUrl = `${window.location.origin}/onboarding/currency`;
-    
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -52,6 +52,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     });
+    if (data.user && !error) {
+      await supabase
+        .from('profiles')
+        .insert([{
+          id: data.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          preferred_currency: 'USD' // Default currency
+        }]);
+    }
     return { error };
   };
 
