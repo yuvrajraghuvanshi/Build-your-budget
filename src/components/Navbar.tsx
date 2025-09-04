@@ -61,10 +61,10 @@ export const Navbar = () => {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
             {/* Add Transaction Button */}
-            <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow">
+            {/* <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow">
               <PlusCircle className="w-4 h-4 mr-2" />
               Add Transaction
-            </Button>
+            </Button> */}
 
             {/* Notifications */}
             <Link to="/notifications">
