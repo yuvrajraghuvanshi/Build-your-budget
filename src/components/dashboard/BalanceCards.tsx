@@ -1,7 +1,13 @@
 import { TrendingUp, TrendingDown, DollarSign, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export const BalanceCards = () => {
+interface BalanceCardsProps {
+  totalBalance: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+}
+
+export const BalanceCards = ({ totalBalance, monthlyIncome, monthlyExpenses }: BalanceCardsProps) => {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {/* Total Balance */}
@@ -10,7 +16,7 @@ export const BalanceCards = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Balance</p>
-              <p className="text-3xl font-bold text-foreground">$12,847</p>
+              <p className="text-3xl font-bold text-foreground">${totalBalance.toFixed(2)}</p>
             </div>
             <Wallet className="h-8 w-8 text-primary" />
           </div>
@@ -23,7 +29,7 @@ export const BalanceCards = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">This Month</p>
-              <p className="text-3xl font-bold text-success">+$4,250</p>
+              <p className="text-3xl font-bold text-success">+${monthlyIncome.toFixed(2)}</p>
             </div>
             <TrendingUp className="h-8 w-8 text-success" />
           </div>
@@ -36,7 +42,7 @@ export const BalanceCards = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Spent</p>
-              <p className="text-3xl font-bold text-expense">$2,848</p>
+              <p className="text-3xl font-bold text-expense">${monthlyExpenses.toFixed(2)}</p>
             </div>
             <TrendingDown className="h-8 w-8 text-expense" />
           </div>

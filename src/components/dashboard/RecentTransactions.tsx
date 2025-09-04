@@ -3,61 +3,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const transactions = [
-  {
-    id: 1,
-    description: "Salary Deposit",
-    amount: 4250.00,
-    type: "income",
-    category: "Salary",
-    date: "Today"
-  },
-  {
-    id: 2,
-    description: "Grocery Shopping",
-    amount: -127.45,
-    type: "expense",
-    category: "Food",
-    date: "Yesterday"
-  },
-  {
-    id: 3,
-    description: "Netflix Subscription",
-    amount: -15.99,
-    type: "expense",
-    category: "Entertainment",
-    date: "Dec 28"
-  },
-  {
-    id: 4,
-    description: "Investment Return",
-    amount: 245.80,
-    type: "income",
-    category: "Investment",
-    date: "Dec 27"
-  },
-  {
-    id: 5,
-    description: "Electric Bill",
-    amount: -89.32,
-    type: "expense",
-    category: "Utilities",
-    date: "Dec 26"
-  }
-];
+interface RecentTransactionsProps {
+  transactions: any[];
+}
 
-const getCategoryColor = (category: string) => {
-  const colors: { [key: string]: string } = {
-    Salary: "bg-success/10 text-success border-success/20",
-    Food: "bg-warning/10 text-warning border-warning/20",
-    Entertainment: "bg-info/10 text-info border-info/20",
-    Investment: "bg-success/10 text-success border-success/20",
-    Utilities: "bg-muted text-muted-foreground border-muted"
+export const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
   };
-  return colors[category] || "bg-muted text-muted-foreground border-muted";
-};
 
-export const RecentTransactions = () => {
   return (
     <Card className="bg-gradient-card border-border/50 shadow-card">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -79,16 +44,20 @@ export const RecentTransactions = () => {
               </div>
               <div>
                 <p className="font-medium text-sm">{transaction.description}</p>
-                <p className="text-xs text-muted-foreground">{transaction.date}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(transaction.transaction_date)}</p>
               </div>
             </div>
             <span className={`font-semibold ${
-              transaction.amount > 0 ? 'text-success' : 'text-expense'
+              transaction.type === 'income' ? 'text-success' : 'text-expense'
             }`}>
-              {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
+              {transaction.type === 'income' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
             </span>
           </div>
         ))}
+        
+        {transactions.length === 0 && (
+          <p className="text-center text-muted-foreground py-4">No transactions found</p>
+        )}
       </CardContent>
     </Card>
   );
