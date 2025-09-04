@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, DollarSign, Tag, FileText } from "lucide-react";
+import { useTransactions } from "@/hooks/useTransactions";
 
 const categories = [
   { value: "food", label: "🍔 Food & Dining", color: "bg-orange-500" },
@@ -25,10 +26,12 @@ const FirstExpense = () => {
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { addTransaction } = useTransactions();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!amount || !category) {
@@ -40,16 +43,26 @@ const FirstExpense = () => {
       return;
     }
 
-    // Store first expense
-    const expense = {
+    setIsSaving(true);
+    
+    // Save to database
+    const { error } = await addTransaction({
       amount: parseFloat(amount),
-      category,
       description,
-      date,
-      id: Date.now().toString(),
-    };
+      transaction_date: date,
+      type: 'expense',
+      category_id: category
+    });
 
-    localStorage.setItem("firstExpense", JSON.stringify(expense));
+    if (error) {
+      toast({
+        title: "Error saving expense",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      setIsSaving(false);
+      return;
+    }
 
     toast({
       title: "Great job! 🎉",
@@ -57,11 +70,9 @@ const FirstExpense = () => {
     });
 
     navigate("/");
+    setIsSaving(false);
   };
 
-  const handleSkip = () => {
-    navigate("/");
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 flex items-center justify-center p-4">

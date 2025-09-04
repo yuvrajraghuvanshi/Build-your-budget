@@ -7,15 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { User, Briefcase, Target } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 const ProfileSetup = () => {
-  const [monthlyIncome, setMonthlyIncome] = useState("");
+ const [monthlyIncome, setMonthlyIncome] = useState("");
   const [occupation, setOccupation] = useState("");
   const [financialGoal, setFinancialGoal] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { updateProfileDetails } = useProfile();
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!monthlyIncome || !occupation || !financialGoal) {
       toast({
         title: "Please fill in all fields",
@@ -25,12 +28,24 @@ const ProfileSetup = () => {
       return;
     }
 
-    // Store profile data
-    localStorage.setItem("userProfile", JSON.stringify({
-      monthlyIncome,
+    setIsSaving(true);
+    
+    // Save to database
+    const { error } = await updateProfileDetails(
+      parseFloat(monthlyIncome),
       occupation,
-      financialGoal,
-    }));
+      financialGoal
+    );
+
+    if (error) {
+      toast({
+        title: "Error saving profile",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      setIsSaving(false);
+      return;
+    }
 
     toast({
       title: "Profile completed!",
@@ -38,6 +53,7 @@ const ProfileSetup = () => {
     });
 
     navigate("/onboarding/welcome-tour");
+    setIsSaving(false);
   };
 
   return (

@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Check } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 const currencies = [
   { code: "USD", name: "US Dollar", symbol: "$", flag: "🇺🇸" },
@@ -20,10 +21,12 @@ const currencies = [
 ];
 
 const CurrencySelection = () => {
-  const [selectedCurrency, setSelectedCurrency] = useState<string>("");
+ const [selectedCurrency, setSelectedCurrency] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { updateCurrency } = useProfile();
 
   const filteredCurrencies = currencies.filter(
     (currency) =>
@@ -31,7 +34,7 @@ const CurrencySelection = () => {
       currency.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedCurrency) {
       toast({
         title: "Please select a currency",
@@ -41,8 +44,21 @@ const CurrencySelection = () => {
       return;
     }
 
-    // Store currency selection (you can integrate with backend later)
-    localStorage.setItem("selectedCurrency", selectedCurrency);
+    setIsSaving(true);
+    
+    // Save to database
+    const { error } = await updateCurrency(selectedCurrency);
+    console.log({error})
+    
+    if (error) {
+      toast({
+        title: "Error saving currency",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      setIsSaving(false);
+      return;
+    }
     
     toast({
       title: "Currency selected!",
@@ -50,6 +66,7 @@ const CurrencySelection = () => {
     });
     
     navigate("/onboarding/profile-setup");
+    setIsSaving(false);
   };
 
   return (

@@ -1,25 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
-const monthlySpending = [
-  { month: 'Jul', spending: 2100 },
-  { month: 'Aug', spending: 2400 },
-  { month: 'Sep', spending: 2200 },
-  { month: 'Oct', spending: 2800 },
-  { month: 'Nov', spending: 2600 },
-  { month: 'Dec', spending: 2847 },
-];
+interface SpendingChartProps {
+  monthlySpending: any[];
+  categorySpending: any[];
+}
 
-const categorySpending = [
-  { name: 'Food & Dining', value: 387.65, color: '#10b981' },
-  { name: 'Transportation', value: 245.30, color: '#3b82f6' },
-  { name: 'Shopping', value: 426.78, color: '#f59e0b' },
-  { name: 'Entertainment', value: 180.50, color: '#ef4444' },
-  { name: 'Utilities', value: 89.32, color: '#8b5cf6' },
-  { name: 'Others', value: 156.45, color: '#6b7280' },
-];
-
-export const SpendingChart = () => {
+export const SpendingChart = ({ monthlySpending, categorySpending }: SpendingChartProps) => {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Monthly Spending Trend */}
@@ -114,6 +101,10 @@ export const SpendingChart = () => {
                   <span className="font-medium">${category.value.toFixed(2)}</span>
                 </div>
               ))}
+              
+              {categorySpending.length === 0 && (
+                <p className="text-center text-muted-foreground">No spending data</p>
+              )}
             </div>
           </div>
         </CardContent>
