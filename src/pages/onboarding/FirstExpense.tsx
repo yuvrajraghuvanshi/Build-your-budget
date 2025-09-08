@@ -72,7 +72,9 @@ const FirstExpense = () => {
     navigate("/");
     setIsSaving(false);
   };
-
+  const handleSkip = () => {
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 flex items-center justify-center p-4">

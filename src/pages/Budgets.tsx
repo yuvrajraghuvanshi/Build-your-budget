@@ -69,7 +69,7 @@ const Budgets = () => {
     if (budgets.length > 0) {
       fetchBudgetProgress();
     }
-  }, [budgets, getBudgetProgress]);
+  }, [budgets]);
 
   const handleCreateBudget = async (e: React.FormEvent) => {
     e.preventDefault();

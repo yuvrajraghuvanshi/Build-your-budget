@@ -24,6 +24,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        
         setLoading(false);
       }
     );
@@ -32,6 +34,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      
       setLoading(false);
     });
 
@@ -40,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     const redirectUrl = `${window.location.origin}/onboarding/currency`;
-
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -52,15 +56,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     });
+
     if (data.user && !error) {
+      // Insert user profile with additional data
       await supabase
         .from('profiles')
         .insert([{
           id: data.user.id,
-          preferred_currency: 'USD' // Default currency
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          preferred_currency: 'USD', // Default currency
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }]);
     }
-    return { error };
+
+    return { error, user: data.user };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -75,6 +87,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const resendVerification = async () => {
+    if (!user?.email) {
+      return { error: { message: "No user email found" } };
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: user.email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/verify-email`
+      }
+    });
+
+    return { error };
+  };
+
+  const checkEmailVerification = async (): Promise<boolean> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const verified = user?.email_confirmed_at !== null;
+    return verified;
+  };
+
   const value = {
     user,
     session,
@@ -82,6 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signIn,
     signOut,
+
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

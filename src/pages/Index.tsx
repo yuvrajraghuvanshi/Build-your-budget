@@ -5,10 +5,13 @@ import { BudgetOverview } from "@/components/dashboard/BudgetOverview";
 import { SpendingChart } from "@/components/dashboard/SpendingChart";
 import { GoalsWidget } from "@/components/dashboard/GoalsWidget";
 import { useDashboard } from '@/hooks/useDashboard';
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const { dashboardData, loading, error } = useDashboard();
+  const { user} = useAuth();
   console.log({dashboardData})
+  console.log({user})
 
   if (loading) {
     return (
