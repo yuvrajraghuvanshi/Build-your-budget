@@ -64,11 +64,11 @@ export const Navbar = () => {
                 Goals
               </Button>
             </Link>
-            <Link to="/analytics">
+            {/* <Link to="/analytics">
               <Button variant="ghost" className={isActive('/analytics') ? "text-primary" : "text-muted-foreground hover:text-primary"}>
                 Analytics
               </Button>
-            </Link>
+            </Link> */}
           </div>
 
           {/* Right Side Actions */}

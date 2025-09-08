@@ -6,11 +6,12 @@ import { SpendingChart } from "@/components/dashboard/SpendingChart";
 import { GoalsWidget } from "@/components/dashboard/GoalsWidget";
 import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 
 const Index = () => {
   const { dashboardData, loading, error } = useDashboard();
+ const {profile}= useProfile();
   const { user} = useAuth();
-  console.log({dashboardData})
   console.log({user})
 
   if (loading) {
@@ -47,7 +48,7 @@ const Index = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back! 👋
+            Welcome back {user.user_metadata.first_name}! 👋
           </h1>
           <p className="text-muted-foreground">
             Here's your financial overview for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
@@ -57,7 +58,7 @@ const Index = () => {
         {/* Balance Cards */}
         <div className="mb-8">
           <BalanceCards 
-            totalBalance={dashboardData.totalBalance}
+            totalBalance={profile.monthly_income}
             monthlyIncome={dashboardData.monthlyIncome}
             monthlyExpenses={dashboardData.monthlyExpenses}
           />
@@ -67,7 +68,7 @@ const Index = () => {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Left Column - Transactions & Budgets */}
           <div className="lg:col-span-2 space-y-6">
-            <RecentTransactions transactions={dashboardData.recentTransactions} />
+            <RecentTransactions profile={profile} transactions={dashboardData.recentTransactions} />
             {/* <SpendingChart 
               monthlySpending={dashboardData.monthlySpending}
               categorySpending={dashboardData.categorySpending}

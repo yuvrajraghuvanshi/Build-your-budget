@@ -15,7 +15,7 @@ export const BalanceCards = ({ totalBalance, monthlyIncome, monthlyExpenses }: B
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total Balance</p>
+              <p className="text-sm text-muted-foreground">Monthly Income</p>
               <p className="text-3xl font-bold text-foreground">${totalBalance.toFixed(2)}</p>
             </div>
             <Wallet className="h-8 w-8 text-primary" />
