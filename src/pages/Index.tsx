@@ -48,7 +48,7 @@ const Index = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back {user.user_metadata.first_name}! 👋
+            Welcome back {user?.user_metadata?.first_name || "User"}! 👋
           </h1>
           <p className="text-muted-foreground">
             Here's your financial overview for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
@@ -58,7 +58,7 @@ const Index = () => {
         {/* Balance Cards */}
         <div className="mb-8">
           <BalanceCards 
-            totalBalance={profile.monthly_income}
+            totalBalance={profile?.monthly_income || 0}
             monthlyIncome={dashboardData.monthlyIncome}
             monthlyExpenses={dashboardData.monthlyExpenses}
           />
