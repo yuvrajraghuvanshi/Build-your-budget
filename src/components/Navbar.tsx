@@ -1,4 +1,5 @@
-import { Bell, User, PlusCircle, Menu, LogOut } from "lucide-react";
+import { useState } from "react";
+import { Bell, User, PlusCircle, Menu, LogOut, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "react-router-dom";
@@ -13,9 +14,10 @@ import { useAuth } from "@/hooks/useAuth";
 
 export const Navbar = () => {
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const isActive = (path: string) => location.pathname === path;
-   const { signOut } = useAuth();
+  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     try {
@@ -27,6 +29,10 @@ export const Navbar = () => {
       console.error("Error signing out:", error);
     }
   };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
   
   return (
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -36,14 +42,13 @@ export const Navbar = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                {/* <span className="text-primary-foreground font-bold text-lg">P</span> */}
-                <img src="/assets/logo.png" alt="PennyPinch Logo" />
+                <img src="/assets/logo.png" alt="PennyPinch Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="text-xl font-bold text-foreground">PennyPinch</span>
+              <span className="text-xl font-bold text-foreground hidden sm:block">PennyPinch</span>
             </div>
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links - Desktop */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/">
               <Button variant="ghost" className={isActive('/') ? "text-primary" : "text-muted-foreground hover:text-primary"}>
@@ -65,19 +70,14 @@ export const Navbar = () => {
                 Goals
               </Button>
             </Link>
-            {/* <Link to="/analytics">
-              <Button variant="ghost" className={isActive('/analytics') ? "text-primary" : "text-muted-foreground hover:text-primary"}>
-                Analytics
-              </Button>
-            </Link> */}
           </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
-            {/* Add Transaction Button */}
-            {/* <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow">
+            {/* Add Transaction Button - Hidden on mobile */}
+            {/* <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow hidden sm:flex">
               <PlusCircle className="w-4 h-4 mr-2" />
-              Add Transaction
+              <span className="hidden sm:inline">Add Transaction</span>
             </Button> */}
 
             {/* Notifications */}
@@ -95,7 +95,7 @@ export const Navbar = () => {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-20 rounded-full">
+                <Button variant="ghost" className="relative h-8 w-8 sm:w-20 rounded-full">
                   <div className="w-8 h-8 bg-gradient-success rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-success-foreground" />
                   </div>
@@ -124,12 +124,44 @@ export const Navbar = () => {
 
             {/* Mobile menu button */}
             <div className="md:hidden">
-              <Button variant="ghost" size="sm">
-                <Menu className="w-5 h-5" />
+              <Button variant="ghost" size="sm" onClick={toggleMobileMenu}>
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-card border-t border-border py-4">
+            <div className="flex flex-col space-y-4 px-4">
+              <Link to="/" onClick={toggleMobileMenu}>
+                <Button variant="ghost" className={`w-full justify-start ${isActive('/') ? "text-primary" : "text-muted-foreground"}`}>
+                  Dashboard
+                </Button>
+              </Link>
+              <Link to="/transactions" onClick={toggleMobileMenu}>
+                <Button variant="ghost" className={`w-full justify-start ${isActive('/transactions') ? "text-primary" : "text-muted-foreground"}`}>
+                  Transactions
+                </Button>
+              </Link>
+              <Link to="/budgets" onClick={toggleMobileMenu}>
+                <Button variant="ghost" className={`w-full justify-start ${isActive('/budgets') ? "text-primary" : "text-muted-foreground"}`}>
+                  Budgets
+                </Button>
+              </Link>
+              <Link to="/goals" onClick={toggleMobileMenu}>
+                <Button variant="ghost" className={`w-full justify-start ${isActive('/goals') ? "text-primary" : "text-muted-foreground"}`}>
+                  Goals
+                </Button>
+              </Link>
+              {/* <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow w-full justify-start mt-4">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Add Transaction
+              </Button> */}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
