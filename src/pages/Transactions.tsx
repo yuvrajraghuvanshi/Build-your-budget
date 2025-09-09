@@ -12,6 +12,8 @@ import { ArrowUpRight, ArrowDownLeft, Search, Filter, Plus, Edit, Trash2, Loader
 import { useTransactions } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
+import { currencies, currencyMap } from "./onboarding/CurrencySelection";
 
 interface TransactionFormData {
   amount: string;
@@ -48,6 +50,7 @@ const Transactions = () => {
     fetchCategories,
     incomeCategories
   } = useCategories();
+  const { profile } = useProfile();
 
   const [formData, setFormData] = useState<TransactionFormData>({
     amount: "",
@@ -448,7 +451,7 @@ const Transactions = () => {
                         <span className={`text-lg font-semibold ${
                           transaction.type === 'income' ? 'text-success' : 'text-expense'
                         }`}>
-                          {transaction.type === 'income' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
+                          {transaction.type === 'income' ? '+' : '-'}{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(transaction.amount).toFixed(2)}
                         </span>
                         <Button
                           variant="ghost"

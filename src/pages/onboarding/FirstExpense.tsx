@@ -9,17 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, DollarSign, Tag, FileText } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useCategories } from "@/hooks/useCategories";
+import { useProfile } from "@/hooks/useProfile";
 
-const categories = [
-  { value: "food", label: "🍔 Food & Dining", color: "bg-orange-500" },
-  { value: "transport", label: "🚗 Transportation", color: "bg-blue-500" },
-  { value: "shopping", label: "🛍️ Shopping", color: "bg-purple-500" },
-  { value: "entertainment", label: "🎬 Entertainment", color: "bg-pink-500" },
-  { value: "bills", label: "💡 Bills & Utilities", color: "bg-yellow-500" },
-  { value: "healthcare", label: "🏥 Healthcare", color: "bg-red-500" },
-  { value: "education", label: "📚 Education", color: "bg-indigo-500" },
-  { value: "other", label: "📋 Other", color: "bg-gray-500" },
-];
+// const categories = [
+//   { value: "food", label: "🍔 Food & Dining", color: "bg-orange-500" },
+//   { value: "transport", label: "🚗 Transportation", color: "bg-blue-500" },
+//   { value: "shopping", label: "🛍️ Shopping", color: "bg-purple-500" },
+//   { value: "entertainment", label: "🎬 Entertainment", color: "bg-pink-500" },
+//   { value: "bills", label: "💡 Bills & Utilities", color: "bg-yellow-500" },
+//   { value: "healthcare", label: "🏥 Healthcare", color: "bg-red-500" },
+//   { value: "education", label: "📚 Education", color: "bg-indigo-500" },
+//   { value: "other", label: "📋 Other", color: "bg-gray-500" },
+// ];
 
 const FirstExpense = () => {
   const [amount, setAmount] = useState("");
@@ -30,6 +32,13 @@ const FirstExpense = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addTransaction } = useTransactions();
+
+    const {
+      categories,
+      loading: categoriesLoading,
+      expenseCategories
+    } = useCategories();
+    console.log({categories})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,14 +133,14 @@ const FirstExpense = () => {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${cat.color}`} />
-                          {cat.label}
-                        </div>
-                      </SelectItem>
-                    ))}
+                  {expenseCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{category.icon}</span>
+                            <span>{category.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -12,6 +12,8 @@ import { AlertTriangle, CheckCircle, Clock, Plus, Edit, Loader2, TrendingUp } fr
 import { useBudgets } from "@/hooks/useBudgets";
 import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
+import { currencies, currencyMap } from "./onboarding/CurrencySelection";
+import { useProfile } from "@/hooks/useProfile";
 
 interface BudgetFormData {
   category_id: string;
@@ -39,6 +41,7 @@ const Budgets = () => {
     loading: categoriesLoading,
     expenseCategories
   } = useCategories();
+  const { profile } = useProfile();
 
   const [formData, setFormData] = useState<BudgetFormData>({
     category_id: "",
@@ -278,7 +281,7 @@ const Budgets = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Total Budget</p>
-                <p className="text-2xl font-bold text-foreground">${totalBudget.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-foreground">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{totalBudget.toFixed(2)}</p>
               </div>
             </CardContent>
           </Card>
@@ -286,7 +289,7 @@ const Budgets = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Total Spent</p>
-                <p className="text-2xl font-bold text-expense">${totalSpent.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-expense">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{totalSpent.toFixed(2)}</p>
               </div>
             </CardContent>
           </Card>
@@ -297,7 +300,7 @@ const Budgets = () => {
                 <p className={`text-2xl font-bold ${
                   totalRemaining >= 0 ? 'text-success' : 'text-destructive'
                 }`}>
-                  ${Math.abs(totalRemaining).toFixed(2)} {totalRemaining >= 0 ? 'left' : 'over'}
+                  {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(totalRemaining).toFixed(2)} {totalRemaining >= 0 ? 'left' : 'over'}
                 </p>
               </div>
             </CardContent>
@@ -350,10 +353,10 @@ const Budgets = () => {
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-2xl font-bold text-expense">
-                        ${progress?.totalSpent?.toFixed(2) || '0.00'}
+                        {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{progress?.totalSpent?.toFixed(2) || '0.00'}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        of ${budget.amount.toFixed(2)}
+                        of {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{budget.amount.toFixed(2)}
                       </span>
                     </div>
                     
@@ -368,8 +371,8 @@ const Budgets = () => {
                       </span>
                       <span className={remaining < 0 ? 'text-destructive font-medium' : 'text-muted-foreground'}>
                         {remaining < 0 ? 
-                          `$${Math.abs(remaining).toFixed(2)} over` : 
-                          `$${remaining.toFixed(2)} left`
+                          `${currencyMap[profile?.preferred_currency]?.symbol ?? "$"}${Math.abs(remaining).toFixed(2)} over` : 
+                          `${currencyMap[profile?.preferred_currency]?.symbol ?? "$"}${remaining.toFixed(2)} left`
                         }
                       </span>
                     </div>

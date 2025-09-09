@@ -16,6 +16,8 @@ import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { currencies, currencyMap } from "./onboarding/CurrencySelection";
+import { useProfile } from "@/hooks/useProfile";
 
 interface GoalFormData {
   title: string;
@@ -52,6 +54,8 @@ const Goals = () => {
     loading: categoriesLoading,
     expenseCategories
   } = useCategories();
+
+  const { profile } = useProfile();
 
   const [formData, setFormData] = useState<GoalFormData>({
     title: "",
@@ -179,7 +183,7 @@ const Goals = () => {
 
       toast({
         title: "Success",
-        description: `$${amount.toFixed(2)} added to goal successfully`,
+        description: `${currencyMap[profile?.preferred_currency]?.symbol ?? "$"}${amount.toFixed(2)} added to goal successfully`,
         variant: "default",
       });
 
@@ -419,7 +423,7 @@ const Goals = () => {
                 <DollarSign className="w-5 h-5 text-success" />
                 <div>
                   <p className="text-sm text-muted-foreground">Total Target</p>
-                  <p className="text-xl font-bold">${totalTarget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-xl font-bold">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{totalTarget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -430,7 +434,7 @@ const Goals = () => {
                 <DollarSign className="w-5 h-5 text-info" />
                 <div>
                   <p className="text-sm text-muted-foreground">Total Saved</p>
-                  <p className="text-xl font-bold">${totalSaved.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-xl font-bold">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{totalSaved.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -490,10 +494,10 @@ const Goals = () => {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-2xl font-bold text-success">
-                          ${goal.current_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{goal.current_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          of ${goal.target_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} goal
+                          of {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{goal.target_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} goal
                         </p>
                       </div>
                       <div className="text-right">
@@ -501,7 +505,7 @@ const Goals = () => {
                           {percentage.toFixed(1)}%
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          ${remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} to go
+                          {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{remaining.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} to go
                         </p>
                       </div>
                     </div>
@@ -694,16 +698,16 @@ const Goals = () => {
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Current amount:</span>
-                <span className="font-medium">${selectedGoal?.current_amount?.toFixed(2) || '0.00'}</span>
+                <span className="font-medium">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{selectedGoal?.current_amount?.toFixed(2) || '0.00'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Target amount:</span>
-                <span className="font-medium">${selectedGoal?.target_amount?.toFixed(2) || '0.00'}</span>
+                <span className="font-medium">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{selectedGoal?.target_amount?.toFixed(2) || '0.00'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Remaining:</span>
                 <span className="font-medium">
-                  ${(selectedGoal ? selectedGoal.target_amount - selectedGoal.current_amount : 0).toFixed(2)}
+                  {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{(selectedGoal ? selectedGoal.target_amount - selectedGoal.current_amount : 0).toFixed(2)}
                 </span>
               </div>
 

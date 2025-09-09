@@ -95,7 +95,7 @@ export const Navbar = () => {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button variant="ghost" className="relative h-8 w-20 rounded-full">
                   <div className="w-8 h-8 bg-gradient-success rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-success-foreground" />
                   </div>

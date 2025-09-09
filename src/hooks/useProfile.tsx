@@ -1,4 +1,3 @@
-// hooks/useProfile.ts
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -38,6 +37,7 @@ export const useProfile = () => {
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return { error: 'User not authenticated' };
+    console.log({updates})
 
     const { data, error } = await supabase
       .from('profiles')
@@ -61,15 +61,40 @@ export const useProfile = () => {
   };
 
   const updateProfileDetails = async (
-    monthlyIncome: number,
-    occupation: string,
-    financialGoal: string
+    firstName: string,
+    lastName: string,
+    monthlyIncome?: number,
+    occupation?: string,
+    financialGoal?: string
   ) => {
     return updateProfile({
+      first_name: firstName,
+      last_name: lastName,
       monthly_income: monthlyIncome,
       occupation,
       financial_goal: financialGoal
     });
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    if (!user) return { error: 'User not authenticated' };
+
+    // First, verify the current password by signing in
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email!,
+      password: currentPassword,
+    });
+
+    if (signInError) {
+      return { error: signInError };
+    }
+
+    // If current password is correct, update to new password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    return { error: updateError };
   };
 
   useEffect(() => {
@@ -84,6 +109,7 @@ export const useProfile = () => {
     fetchProfile,
     updateProfile,
     updateCurrency,
-    updateProfileDetails
+    updateProfileDetails,
+    changePassword
   };
 };

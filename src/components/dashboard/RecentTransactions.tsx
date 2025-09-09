@@ -2,12 +2,14 @@ import { MoreVertical, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { currencies, currencyMap } from "@/pages/onboarding/CurrencySelection";
 
 interface RecentTransactionsProps {
   transactions: any[];
+  profile?: any;
 }
 
-export const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
+export const RecentTransactions = ({ profile,transactions }: RecentTransactionsProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -50,7 +52,7 @@ export const RecentTransactions = ({ transactions }: RecentTransactionsProps) =>
             <span className={`font-semibold ${
               transaction.type === 'income' ? 'text-success' : 'text-expense'
             }`}>
-              {transaction.type === 'income' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
+              {transaction.type === 'income' ? '+' : '-'}{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(transaction.amount).toFixed(2)}
             </span>
           </div>
         ))}

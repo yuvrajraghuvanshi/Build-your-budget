@@ -8,15 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { User, Briefcase, Target } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
 
 const ProfileSetup = () => {
- const [monthlyIncome, setMonthlyIncome] = useState("");
+  const [monthlyIncome, setMonthlyIncome] = useState("");
   const [occupation, setOccupation] = useState("");
   const [financialGoal, setFinancialGoal] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { updateProfileDetails } = useProfile();
+  const { user } = useAuth()
+  console.log({ user })
 
   const handleContinue = async () => {
     if (!monthlyIncome || !occupation || !financialGoal) {
@@ -29,12 +32,15 @@ const ProfileSetup = () => {
     }
 
     setIsSaving(true);
-    
+
     // Save to database
-    const { error } = await updateProfileDetails(
-      parseFloat(monthlyIncome),
+    const { error } = await updateProfileDetails({
+      firstName: user?.user_metadata?.first_name || "",
+      lastName: user?.user_metadata?.last_name || "",
+      monthlyIncome:parseFloat(monthlyIncome),
       occupation,
       financialGoal
+    }
     );
 
     if (error) {

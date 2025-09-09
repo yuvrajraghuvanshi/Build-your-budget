@@ -56,6 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     });
+    console.log({data,firstName,lastName})
 
     if (data.user && !error) {
       // Insert user profile with additional data

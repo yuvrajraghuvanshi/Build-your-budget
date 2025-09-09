@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, Check } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 
-const currencies = [
+export const currencies = [
   { code: "USD", name: "US Dollar", symbol: "$", flag: "🇺🇸" },
   { code: "EUR", name: "Euro", symbol: "€", flag: "🇪🇺" },
   { code: "GBP", name: "British Pound", symbol: "£", flag: "🇬🇧" },
@@ -19,6 +19,10 @@ const currencies = [
   { code: "INR", name: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },
   { code: "BRL", name: "Brazilian Real", symbol: "R$", flag: "🇧🇷" },
 ];
+export const currencyMap = currencies.reduce((map, c) => {
+  map[c.code] = c;
+  return map;
+}, {} as Record<string, typeof currencies[number]>);
 
 const CurrencySelection = () => {
  const [selectedCurrency, setSelectedCurrency] = useState<string>("");

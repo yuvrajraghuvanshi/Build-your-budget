@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { currencies, currencyMap } from "@/pages/onboarding/CurrencySelection";
 
 interface BudgetOverviewProps {
+  profile?: any;
   budgets?: any[];
 }
 
@@ -19,7 +21,7 @@ interface BudgetWithProgress {
   percentage: number;
 }
 
-export const BudgetOverview = ({ budgets: propBudgets }: BudgetOverviewProps) => {
+export const BudgetOverview = ({profile, budgets: propBudgets }: BudgetOverviewProps) => {
   const { user } = useAuth();
   const [budgets, setBudgets] = useState<BudgetWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,8 +198,8 @@ export const BudgetOverview = ({ budgets: propBudgets }: BudgetOverviewProps) =>
                   <span className="font-medium text-sm">{budget.category}</span>
                 </div>
                 <div className={`text-sm ${getStatusColor(budget.status)}`}>
-                  <span>${budget.spent.toFixed(2)}</span>
-                  <span className="text-muted-foreground"> / ${budget.budget.toFixed(2)}</span>
+                  <span>{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{budget.spent.toFixed(2)}</span>
+                  <span className="text-muted-foreground"> / {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{budget.budget.toFixed(2)}</span>
                 </div>
               </div>
               <Progress 
@@ -210,7 +212,7 @@ export const BudgetOverview = ({ budgets: propBudgets }: BudgetOverviewProps) =>
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{budget.percentage.toFixed(0)}% spent</span>
-                <span>${(budget.budget - budget.spent).toFixed(2)} left</span>
+                <span>{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{(budget.budget - budget.spent).toFixed(2)} left</span>
               </div>
             </div>
           ))

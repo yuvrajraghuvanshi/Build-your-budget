@@ -10,9 +10,9 @@ import { useProfile } from "@/hooks/useProfile";
 
 const Index = () => {
   const { dashboardData, loading, error } = useDashboard();
- const {profile}= useProfile();
-  const { user} = useAuth();
-  console.log({user})
+  const { profile } = useProfile();
+  const { user } = useAuth();
+  console.log({ profile })
 
   if (loading) {
     return (
@@ -43,7 +43,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -57,7 +57,8 @@ const Index = () => {
 
         {/* Balance Cards */}
         <div className="mb-8">
-          <BalanceCards 
+          <BalanceCards
+            profile={profile}
             totalBalance={profile?.monthly_income || 0}
             monthlyIncome={dashboardData.monthlyIncome}
             monthlyExpenses={dashboardData.monthlyExpenses}
@@ -74,10 +75,10 @@ const Index = () => {
               categorySpending={dashboardData.categorySpending}
             /> */}
           </div>
-          
+
           {/* Right Column - Sidebar Widgets */}
           <div className="space-y-6">
-            <BudgetOverview budgets={dashboardData.budgetOverview} />
+            <BudgetOverview profile={profile} budgets={dashboardData.budgetOverview} />
             {/* <GoalsWidget /> */}
           </div>
         </div>
