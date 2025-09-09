@@ -42,9 +42,9 @@ export const Navbar = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <img src="/assets/logo.png" alt="PennyPinch Logo" className="w-full h-full object-contain" />
+                <img src="/assets/logo.png" alt="BYB Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="text-xl font-bold text-foreground hidden sm:block">PennyPinch</span>
+              <span className="text-xl font-bold text-foreground hidden sm:block">Build Your Budget</span>
             </div>
           </div>
 

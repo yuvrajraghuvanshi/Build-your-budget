@@ -50,7 +50,7 @@ const Login = () => {
   return (
     <AuthLayout
       title="Welcome Back"
-      subtitle="Sign in to your PennyPinch account"
+      subtitle="Sign in to your Build Your Budget account"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">

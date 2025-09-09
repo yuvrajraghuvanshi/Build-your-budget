@@ -72,7 +72,7 @@ const Signup = () => {
   return (
     <AuthLayout
       title="Create Account"
-      subtitle="Join PennyPinch and take control of your finances"
+      subtitle="Join Build Your Budget and take control of your finances"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
