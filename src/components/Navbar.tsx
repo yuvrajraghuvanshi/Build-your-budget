@@ -81,7 +81,7 @@ export const Navbar = () => {
             </Button> */}
 
             {/* Notifications */}
-            <Link to="/notifications">
+            {/* <Link to="/notifications">
               <div className="relative">
                 <Button variant="ghost" size="sm" className="relative">
                   <Bell className="w-5 h-5 text-muted-foreground" />
@@ -90,15 +90,15 @@ export const Navbar = () => {
                   </Badge>
                 </Button>
               </div>
-            </Link>
+            </Link> */}
 
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 sm:w-20 rounded-full">
-                  <div className="w-8 h-8 bg-gradient-success rounded-full flex items-center justify-center">
+                <Button variant="ghost" className="w-8 h-8 bg-gradient-success rounded-full flex items-center justify-center">
+                  {/* <div className="w-8 h-8 bg-gradient-success rounded-full flex items-center justify-center"> */}
                     <User className="w-4 h-4 text-success-foreground" />
-                  </div>
+                  {/* </div> */}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
@@ -108,12 +108,12 @@ export const Navbar = () => {
                     Profile Settings
                   </DropdownMenuItem>
                 </Link>
-                <Link to="/notifications">
+                {/* <Link to="/notifications">
                   <DropdownMenuItem className="cursor-pointer">
                     <Bell className="mr-2 h-4 w-4" />
                     Notifications
                   </DropdownMenuItem>
-                </Link>
+                </Link> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer text-destructive" onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
