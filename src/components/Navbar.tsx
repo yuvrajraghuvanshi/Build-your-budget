@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 export const Navbar = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   const isActive = (path: string) => location.pathname === path;
   const { signOut } = useAuth();
 
@@ -33,7 +33,7 @@ export const Navbar = () => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
-  
+
   return (
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,11 +41,14 @@ export const Navbar = () => {
           {/* Logo and Brand */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <img src="/assets/logo.png" alt="BYB Logo" className="w-full h-full object-contain" />
+              <div className=" text-white font-bold text-3xl rounded-lg px-3 py-2">
+                BYB
+                <span className="text-green-500 text-4xl rounded-lg">
+                  .
+                </span>
               </div>
-              <span className="text-xl font-bold text-foreground hidden sm:block">Build Your Budget</span>
             </div>
+
           </div>
 
           {/* Navigation Links - Desktop */}
@@ -97,7 +100,7 @@ export const Navbar = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-8 h-8 bg-gradient-success rounded-full flex items-center justify-center">
                   {/* <div className="w-8 h-8 bg-gradient-success rounded-full flex items-center justify-center"> */}
-                    <User className="w-4 h-4 text-success-foreground" />
+                  <User className="w-4 h-4 text-success-foreground" />
                   {/* </div> */}
                 </Button>
               </DropdownMenuTrigger>
