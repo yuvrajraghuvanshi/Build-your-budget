@@ -63,6 +63,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         swDest: "dist/service-worker.ts", // Explicitly place service worker at root
         globPatterns: ["**/*.{js,jsx,css,html,png,svg,ico}"],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === "document",
