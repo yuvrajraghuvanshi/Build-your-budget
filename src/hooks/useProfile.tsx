@@ -21,7 +21,7 @@ export const useProfile = () => {
 
   const fetchProfile = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
@@ -61,11 +61,11 @@ export const useProfile = () => {
   };
 
   const updateProfileDetails = async (
-    firstName: string,
-    lastName: string,
-    monthlyIncome?: number,
-    occupation?: string,
-    financialGoal?: string
+    { firstName,
+      lastName,
+      monthlyIncome,
+      occupation,
+      financialGoal }: any
   ) => {
     return updateProfile({
       first_name: firstName,
