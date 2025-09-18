@@ -41,6 +41,7 @@ export const Navbar = () => {
           {/* Logo and Brand */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
+                {/* <img src="/assets/logo.png" alt="BYB" className="w-15 h-12"/> */}
               <div className=" text-white font-bold text-3xl rounded-lg px-3 py-2">
                 BYB
                 <span className="text-green-500 text-4xl rounded-lg">

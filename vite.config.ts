@@ -41,17 +41,17 @@ export default defineConfig(({ mode }) => ({
         theme_color: "#696360ff",
         icons: [
           {
-            src: "/public/logo.png",
+            src: "/assets/logo.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/public/logo.png",
+            src: "/assets/logo.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "/public/logo.png",
+            src: "/assets/logo.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
