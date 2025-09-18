@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUpRight, ArrowDownLeft, Search, Filter, Plus, Edit, Trash2, Loader2 } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Search, Filter, Plus, Edit, Trash2, Loader2, MoreVertical } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
@@ -219,7 +219,7 @@ const Transactions = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           <div className="flex justify-center items-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
@@ -232,7 +232,7 @@ const Transactions = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           <div className="flex justify-center items-center h-64">
             <p className="text-destructive">Error: {error}</p>
           </div>
@@ -245,21 +245,21 @@ const Transactions = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Transactions</h1>
-            <p className="text-muted-foreground">Manage and track all your transactions</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Transactions</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage and track all your transactions</p>
           </div>
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground">
+              <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Transaction
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[95vw] max-w-md mx-auto">
               <DialogHeader>
                 <DialogTitle>Add New Transaction</DialogTitle>
               </DialogHeader>
@@ -359,9 +359,9 @@ const Transactions = () => {
         </div>
 
         {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="space-y-3 sm:space-y-0 sm:flex sm:gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -373,39 +373,45 @@ const Transactions = () => {
                   />
                 </div>
               </div>
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categoryNames.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-none sm:flex sm:gap-4">
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="sm:w-[140px]">
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="income">Income</SelectItem>
+                    <SelectItem value="expense">Expense</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="sm:w-[140px]">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categoryNames.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Transactions List */}
         <Card>
-          <CardHeader>
-            <CardTitle>All Transactions ({filteredTransactions.length})</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg sm:text-xl">
+              All Transactions ({filteredTransactions.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {filteredTransactions.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No transactions found</p>
@@ -415,22 +421,24 @@ const Transactions = () => {
                   const { date, time } = formatDate(transaction.transaction_date);
                   
                   return (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/20 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-2 rounded-full ${transaction.type === 'income' ? 'bg-success/10' : 'bg-expense/10'}`}>
+                    <div key={transaction.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg border hover:bg-muted/20 transition-colors">
+                      <div className="flex items-start space-x-3 flex-1 min-w-0">
+                        <div className={`p-2 rounded-full shrink-0 ${transaction.type === 'income' ? 'bg-success/10' : 'bg-expense/10'}`}>
                           {transaction.type === 'income' ? (
                             <ArrowDownLeft className="w-4 h-4 text-success" />
                           ) : (
                             <ArrowUpRight className="w-4 h-4 text-expense" />
                           )}
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{transaction.description}</p>
-                          <div className="flex items-center space-x-2 mt-1">
+                        
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{transaction.description}</p>
+                          
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mt-1 space-y-1 sm:space-y-0">
                             {transaction.category && (
                               <Badge 
                                 variant="outline" 
-                                className="text-xs"
+                                className="text-xs self-start"
                                 style={{ 
                                   backgroundColor: `${transaction.category.color}20`,
                                   borderColor: transaction.category.color,
@@ -438,38 +446,52 @@ const Transactions = () => {
                                 }}
                               >
                                 <span className="mr-1">{transaction.category.icon}</span>
-                                {transaction.category.name}
+                                <span className="hidden xs:inline">{transaction.category.name}</span>
                               </Badge>
                             )}
                             <span className="text-xs text-muted-foreground">
                               {date} • {time}
                             </span>
                           </div>
+                          
+                          {/* Mobile amount display */}
+                          <div className="sm:hidden mt-2">
+                            <span className={`text-lg font-semibold ${
+                              transaction.type === 'income' ? 'text-success' : 'text-expense'
+                            }`}>
+                              {transaction.type === 'income' ? '+' : '-'}{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(transaction.amount).toFixed(2)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-lg font-semibold ${
+                      
+                      <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+                        {/* Desktop amount display */}
+                        <span className={`hidden sm:inline text-lg font-semibold ${
                           transaction.type === 'income' ? 'text-success' : 'text-expense'
                         }`}>
                           {transaction.type === 'income' ? '+' : '-'}{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(transaction.amount).toFixed(2)}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(transaction)}
-                          className="h-8 w-8"
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteTransaction(transaction.id)}
-                          disabled={isDeleting}
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                        
+                        <div className="flex sm:space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(transaction)}
+                            className="h-8 w-8"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteTransaction(transaction.id)}
+                            disabled={isDeleting}
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -481,7 +503,7 @@ const Transactions = () => {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="w-[95vw] max-w-md mx-auto">
             <DialogHeader>
               <DialogTitle>Edit Transaction</DialogTitle>
             </DialogHeader>
