@@ -8,7 +8,7 @@ import Index from "./pages/Index";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
-import Analytics from "./pages/Analytics";
+// import Analytics from "./pages/Analytics";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -18,6 +18,7 @@ import CurrencySelection from "./pages/onboarding/CurrencySelection";
 import ProfileSetup from "./pages/onboarding/ProfileSetup";
 import WelcomeTour from "./pages/onboarding/WelcomeTour";
 import FirstExpense from "./pages/onboarding/FirstExpense";
+import { Analytics } from "@vercel/analytics/react"
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <Analytics/>
         <BrowserRouter>
           <Routes>
             {/* Protected Routes */}
