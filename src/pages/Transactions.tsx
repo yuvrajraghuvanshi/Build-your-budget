@@ -14,6 +14,8 @@ import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { currencies, currencyMap } from "./onboarding/CurrencySelection";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+
 
 interface TransactionFormData {
   amount: string;
@@ -33,6 +35,12 @@ const Transactions = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { toast } = useToast();
+  const [currentMonth, setCurrentMonth] = useState<{ year: number, month: number }>(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1 };
+  });
+
+  // Update your hook usage to include the new functions
   const {
     transactions,
     loading: transactionsLoading,
@@ -40,8 +48,58 @@ const Transactions = () => {
     addTransaction,
     updateTransaction,
     deleteTransaction,
-    fetchTransactions
+    fetchTransactions,
+    getCurrentMonthSummary,
+    setCurrentMonth: setHookCurrentMonth
   } = useTransactions();
+
+  // Add month navigation functions
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    let newYear = currentMonth.year;
+    let newMonth = currentMonth.month;
+
+    if (direction === 'prev') {
+      newMonth--;
+      if (newMonth < 1) {
+        newMonth = 12;
+        newYear--;
+      }
+    } else {
+      if (newYear > (new Date()).getFullYear() || (newYear === (new Date()).getFullYear() && newMonth >= (new Date()).getMonth() + 1)) {
+        // Prevent navigating to future months
+        return;
+      }
+      newMonth++;
+      if (newMonth > 12) {
+        newMonth = 1;
+        newYear++;
+      }
+    }
+
+    const newMonthData = { year: newYear, month: newMonth };
+    setCurrentMonth(newMonthData);
+    setHookCurrentMonth(newMonthData);
+    fetchTransactions(newYear, newMonth);
+  };
+
+  const goToCurrentMonth = () => {
+    const now = new Date();
+    const newMonthData = { year: now.getFullYear(), month: now.getMonth() + 1 };
+    setCurrentMonth(newMonthData);
+    setHookCurrentMonth(newMonthData);
+    fetchTransactions(newMonthData.year, newMonthData.month);
+  };
+
+  // Format month for display
+  const formatMonthYear = (year: number, month: number) => {
+    return new Date(year, month - 1).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long'
+    });
+  };
+
+  // Get month summary
+  const monthSummary = getCurrentMonthSummary();
 
   const {
     categories,
@@ -89,7 +147,7 @@ const Transactions = () => {
 
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const transactionData = {
         amount: parseFloat(formData.amount),
@@ -100,7 +158,7 @@ const Transactions = () => {
       };
 
       const { error } = await addTransaction(transactionData);
-      
+
       if (error) {
         throw error;
       }
@@ -131,7 +189,7 @@ const Transactions = () => {
 
   const handleEditTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!editingTransaction) return;
 
     try {
@@ -144,7 +202,7 @@ const Transactions = () => {
       };
 
       const { error } = await updateTransaction(editingTransaction.id, updates);
-      
+
       if (error) {
         throw error;
       }
@@ -173,7 +231,7 @@ const Transactions = () => {
     setIsDeleting(true);
     try {
       const { error } = await deleteTransaction(id);
-      
+
       if (error) {
         throw error;
       }
@@ -244,118 +302,212 @@ const Transactions = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Transactions</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Manage and track all your transactions</p>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Manage and track your transactions for {formatMonthYear(currentMonth.year, currentMonth.month)}
+            </p>
           </div>
-          
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Transaction
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-md mx-auto">
-              <DialogHeader>
-                <DialogTitle>Add New Transaction</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddTransaction} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={handleTypeChange}
+
+          <div className="flex items-center gap-4">
+            {/* Month Navigation */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigateMonth('prev')}
+                    className="h-8 w-8"
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="expense">Expense</SelectItem>
-                      <SelectItem value="income">Income</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
 
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    required
-                  />
-                </div>
+                  <div className="flex items-center gap-2 px-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">
+                      {formatMonthYear(currentMonth.year, currentMonth.month)}
+                    </span>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Enter description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date">Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.transaction_date}
-                    onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category_id}
-                    onValueChange={(value) => 
-                      setFormData({ ...formData, category_id: value })
-                    }
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={currentMonth.year === (new Date()).getFullYear() && currentMonth.month === (new Date()).getMonth() + 1}
+                    onClick={() => navigateMonth('next')}
+                    className="h-8 w-8"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{category.icon}</span>
-                            <span>{category.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
 
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={categoriesLoading}
-                >
-                  {categoriesLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Loading categories...
-                    </>
-                  ) : (
-                    "Add Transaction"
-                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToCurrentMonth}
+                    className="h-8 text-xs"
+                  >
+                    Current
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-primary hover:opacity-90 text-primary-foreground w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Transaction
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] max-w-md mx-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Transaction</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleAddTransaction} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Type</Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={handleTypeChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="expense">Expense</SelectItem>
+                        <SelectItem value="income">Income</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Enter description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Date</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={formData.transaction_date}
+                      onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={formData.category_id}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, category_id: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredCategories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{category.icon}</span>
+                              <span>{category.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={categoriesLoading}
+                  >
+                    {categoriesLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Loading categories...
+                      </>
+                    ) : (
+                      "Add Transaction"
+                    )}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {/* Month Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Income</p>
+                  <p className="text-2xl font-bold text-success">
+                    +{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{monthSummary.totalIncome.toFixed(2)}
+                  </p>
+                </div>
+                <ArrowDownLeft className="w-8 h-8 text-success/50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Expenses</p>
+                  <p className="text-2xl font-bold text-expense">
+                    -{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{monthSummary.totalExpenses.toFixed(2)}
+                  </p>
+                </div>
+                <ArrowUpRight className="w-8 h-8 text-expense/50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Net Amount</p>
+                  <p className={`text-2xl font-bold ${monthSummary.netAmount >= 0 ? 'text-success' : 'text-expense'
+                    }`}>
+                    {monthSummary.netAmount >= 0 ? '+' : '-'}{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(monthSummary.netAmount).toFixed(2)}
+                  </p>
+                </div>
+                <Badge variant={monthSummary.netAmount >= 0 ? "default" : "destructive"}>
+                  {monthSummary.transactionCount} transactions
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
@@ -373,7 +525,7 @@ const Transactions = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-none sm:flex sm:gap-4">
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger className="sm:w-[140px]">
@@ -386,7 +538,7 @@ const Transactions = () => {
                     <SelectItem value="expense">Expense</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={filterCategory} onValueChange={setFilterCategory}>
                   <SelectTrigger className="sm:w-[140px]">
                     <SelectValue placeholder="All Categories" />
@@ -419,7 +571,7 @@ const Transactions = () => {
               ) : (
                 filteredTransactions.map((transaction) => {
                   const { date, time } = formatDate(transaction.transaction_date);
-                  
+
                   return (
                     <div key={transaction.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg border hover:bg-muted/20 transition-colors">
                       <div className="flex items-start space-x-3 flex-1 min-w-0">
@@ -430,16 +582,16 @@ const Transactions = () => {
                             <ArrowUpRight className="w-4 h-4 text-expense" />
                           )}
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm sm:text-base truncate">{transaction.description}</p>
-                          
+
                           <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mt-1 space-y-1 sm:space-y-0">
                             {transaction.category && (
-                              <Badge 
-                                variant="outline" 
+                              <Badge
+                                variant="outline"
                                 className="text-xs self-start"
-                                style={{ 
+                                style={{
                                   backgroundColor: `${transaction.category.color}20`,
                                   borderColor: transaction.category.color,
                                   color: transaction.category.color
@@ -453,26 +605,24 @@ const Transactions = () => {
                               {date} • {time}
                             </span>
                           </div>
-                          
+
                           {/* Mobile amount display */}
                           <div className="sm:hidden mt-2">
-                            <span className={`text-lg font-semibold ${
-                              transaction.type === 'income' ? 'text-success' : 'text-expense'
-                            }`}>
+                            <span className={`text-lg font-semibold ${transaction.type === 'income' ? 'text-success' : 'text-expense'
+                              }`}>
                               {transaction.type === 'income' ? '+' : '-'}{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(transaction.amount).toFixed(2)}
                             </span>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
                         {/* Desktop amount display */}
-                        <span className={`hidden sm:inline text-lg font-semibold ${
-                          transaction.type === 'income' ? 'text-success' : 'text-expense'
-                        }`}>
+                        <span className={`hidden sm:inline text-lg font-semibold ${transaction.type === 'income' ? 'text-success' : 'text-expense'
+                          }`}>
                           {transaction.type === 'income' ? '+' : '-'}{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{Math.abs(transaction.amount).toFixed(2)}
                         </span>
-                        
+
                         <div className="flex sm:space-x-1">
                           <Button
                             variant="ghost"
@@ -563,7 +713,7 @@ const Transactions = () => {
                 <Label htmlFor="edit-category">Category</Label>
                 <Select
                   value={formData.category_id}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     setFormData({ ...formData, category_id: value })
                   }
                 >
@@ -583,8 +733,8 @@ const Transactions = () => {
                 </Select>
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full"
                 disabled={categoriesLoading}
               >
