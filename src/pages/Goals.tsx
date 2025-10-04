@@ -10,11 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Target, Plus, Calendar as CalendarIcon, DollarSign, Edit, Trash2, Loader2, TrendingUp } from "lucide-react";
+import { Target, Plus, Calendar as CalendarIcon, DollarSign, Edit, Trash2, Loader2, TrendingUp, CalendarRange, Repeat } from "lucide-react";
 import { useGoals } from "@/hooks/useGoals";
 import { useCategories } from "@/hooks/useCategories";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, getYear, getMonth, startOfMonth, endOfMonth, isBefore, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
 import { currencies, currencyMap } from "./onboarding/CurrencySelection";
 import { useProfile } from "@/hooks/useProfile";
@@ -25,10 +25,14 @@ interface GoalFormData {
   category_id: string;
   deadline: Date;
   priority: 'low' | 'medium' | 'high';
+  target_month?: number;
+  target_year?: number;
+  is_recurring: boolean;
 }
 
 interface AddMoneyFormData {
   amount: string;
+  for_month: Date;
 }
 
 const Goals = () => {
@@ -38,15 +42,18 @@ const Goals = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<any>(null);
   const [selectedGoal, setSelectedGoal] = useState<any>(null);
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
   const { toast } = useToast();
   const {
     goals,
+    monthlyProgress,
     loading: goalsLoading,
     addGoal,
     updateGoal,
     deleteGoal,
-    addToGoal
+    addToGoal,
+    fetchMonthlyProgress
   } = useGoals();
 
   const {
@@ -62,20 +69,73 @@ const Goals = () => {
     target_amount: "",
     category_id: "",
     deadline: new Date(),
-    priority: "medium"
+    priority: "medium",
+    target_month: getMonth(new Date()) + 1,
+    target_year: getYear(new Date()),
+    is_recurring: false
   });
 
   const [addMoneyFormData, setAddMoneyFormData] = useState<AddMoneyFormData>({
-    amount: ""
+    amount: "",
+    for_month: new Date()
   });
 
-  // Calculate totals
-  const totalGoals = goals.length;
-  const totalTarget = goals.reduce((sum, goal) => sum + goal.target_amount, 0);
-  const totalSaved = goals.reduce((sum, goal) => sum + goal.current_amount, 0);
-  const avgProgress = goals.length > 0 
-    ? goals.reduce((sum, goal) => sum + (goal.current_amount / goal.target_amount * 100), 0) / goals.length 
+  const getGoalProgress = (goalId: string) => {
+    const year = getYear(selectedMonth);
+    const month = getMonth(selectedMonth) + 1;
+    return monthlyProgress[goalId]?.[year]?.[month] || 0;
+  };
+
+  // Get goals that should be visible for the selected month
+  const getGoalsForSelectedMonth = () => {
+    const selectedYear = getYear(selectedMonth);
+    const selectedMonthNum = getMonth(selectedMonth) + 1;
+    
+    return goals.filter(goal => {
+      // If it's a recurring goal, check if it matches the selected month
+      if (goal.is_recurring) {
+        return goal.target_month === selectedMonthNum && goal.target_year === selectedYear;
+      }
+      
+      // For non-recurring goals, show if they are active during the selected month
+      const goalStartDate = startOfMonth(new Date(goal.created_at));
+      const goalEndDate = endOfMonth(new Date(goal.deadline));
+      const currentMonthStart = startOfMonth(selectedMonth);
+      const currentMonthEnd = endOfMonth(selectedMonth);
+      
+      // Show goal if the selected month is between goal creation and deadline
+      return (
+        (isAfter(currentMonthStart, goalStartDate) || currentMonthStart.getTime() === goalStartDate.getTime()) &&
+        (isBefore(currentMonthEnd, goalEndDate) || currentMonthEnd.getTime() === goalEndDate.getTime())
+      );
+    });
+  };
+
+  const currentMonthGoals = getGoalsForSelectedMonth();
+
+  // Calculate monthly totals based on progress for the selected month
+  const totalGoals = currentMonthGoals.length;
+  const totalTarget = currentMonthGoals.reduce((sum, goal) => sum + goal.target_amount, 0);
+  const totalSaved = currentMonthGoals?.reduce((sum, goal) => {
+    const progress = getGoalProgress(goal.id);
+    return sum + progress;
+  }, 0);
+  
+  const avgProgress = currentMonthGoals.length > 0 
+    ? currentMonthGoals.reduce((sum, goal) => {
+        const progress = getGoalProgress(goal.id);
+        return sum + (progress / goal.target_amount * 100);
+      }, 0) / currentMonthGoals.length 
     : 0;
+
+  // Fetch monthly progress when month changes or goals update
+  useEffect(() => {
+    if (goals.length > 0) {
+      const year = getYear(selectedMonth);
+      const month = getMonth(selectedMonth) + 1;
+      fetchMonthlyProgress(year, month);
+    }
+  }, [selectedMonth, goals.length]);
 
   const handleCreateGoal = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +146,10 @@ const Goals = () => {
         targetAmount: parseFloat(formData.target_amount),
         categoryId: formData.category_id,
         deadline: formData.deadline.toISOString().split('T')[0],
-        priority: formData.priority
+        priority: formData.priority,
+        targetMonth: formData.is_recurring ? formData.target_month : null,
+        targetYear: formData.is_recurring ? formData.target_year : null,
+        isRecurring: formData.is_recurring
       };
 
       const { error } = await addGoal(
@@ -94,7 +157,10 @@ const Goals = () => {
         goalData.targetAmount,
         goalData.categoryId,
         goalData.deadline,
-        goalData.priority
+        goalData.priority,
+        goalData.targetMonth,
+        goalData.targetYear,
+        goalData.isRecurring
       );
       
       if (error) {
@@ -103,7 +169,9 @@ const Goals = () => {
 
       toast({
         title: "Success",
-        description: "Goal created successfully",
+        description: formData.is_recurring 
+          ? `Monthly goal created for ${new Date(0, formData.target_month! - 1).toLocaleString('default', { month: 'long' })} ${formData.target_year}`
+          : "Goal created successfully",
         variant: "default",
       });
 
@@ -113,7 +181,10 @@ const Goals = () => {
         target_amount: "",
         category_id: "",
         deadline: new Date(),
-        priority: "medium"
+        priority: "medium",
+        target_month: getMonth(new Date()) + 1,
+        target_year: getYear(new Date()),
+        is_recurring: false
       });
 
     } catch (error: any) {
@@ -136,7 +207,10 @@ const Goals = () => {
         target_amount: parseFloat(formData.target_amount),
         category_id: formData.category_id,
         deadline: formData.deadline.toISOString().split('T')[0],
-        priority: formData.priority
+        priority: formData.priority,
+        target_month: formData.is_recurring ? formData.target_month : null,
+        target_year: formData.is_recurring ? formData.target_year : null,
+        is_recurring: formData.is_recurring
       };
 
       const { error } = await updateGoal(editingGoal.id, goalData);
@@ -175,7 +249,10 @@ const Goals = () => {
         throw new Error("Please enter a valid amount");
       }
 
-      const { error } = await addToGoal(selectedGoal.id, amount);
+      const month = getMonth(addMoneyFormData.for_month) + 1;
+      const year = getYear(addMoneyFormData.for_month);
+
+      const { error } = await addToGoal(selectedGoal.id, amount, month, year);
       
       if (error) {
         throw error;
@@ -183,13 +260,16 @@ const Goals = () => {
 
       toast({
         title: "Success",
-        description: `${currencyMap[profile?.preferred_currency]?.symbol ?? "$"}${amount.toFixed(2)} added to goal successfully`,
+        description: `${currencyMap[profile?.preferred_currency]?.symbol ?? "$"}${amount.toFixed(2)} added to goal for ${format(addMoneyFormData.for_month, 'MMMM yyyy')}`,
         variant: "default",
       });
 
       setIsAddMoneyDialogOpen(false);
       setSelectedGoal(null);
-      setAddMoneyFormData({ amount: "" });
+      setAddMoneyFormData({ 
+        amount: "", 
+        for_month: new Date() 
+      });
 
     } catch (error: any) {
       toast({
@@ -235,20 +315,34 @@ const Goals = () => {
       target_amount: goal.target_amount.toString(),
       category_id: goal.category_id,
       deadline: new Date(goal.deadline),
-      priority: goal.priority
+      priority: goal.priority,
+      target_month: goal.target_month || getMonth(new Date()) + 1,
+      target_year: goal.target_year || getYear(new Date()),
+      is_recurring: goal.is_recurring || false
     });
     setIsEditDialogOpen(true);
   };
 
   const openAddMoneyDialog = (goal: any) => {
     setSelectedGoal(goal);
-    setAddMoneyFormData({ amount: "" });
+    setAddMoneyFormData({ 
+      amount: "", 
+      for_month: selectedMonth // Default to currently selected month
+    });
     setIsAddMoneyDialogOpen(true);
   };
 
   const openDeleteDialog = (goal: any) => {
     setSelectedGoal(goal);
     setIsDeleteDialogOpen(true);
+  };
+
+
+  const getGoalType = (goal: any) => {
+    if (goal.is_recurring) {
+      return `Monthly for ${new Date(0, goal.target_month - 1).toLocaleString('default', { month: 'long' })}`;
+    }
+    return 'One-time';
   };
 
   if (goalsLoading) {
@@ -282,7 +376,7 @@ const Goals = () => {
                 Add New Goal
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Create New Goal</DialogTitle>
               </DialogHeader>
@@ -366,6 +460,42 @@ const Goals = () => {
                   </Popover>
                 </div>
 
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_recurring"
+                    checked={formData.is_recurring}
+                    onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor="is_recurring" className="text-sm">
+                    This is a monthly recurring goal
+                  </Label>
+                </div>
+
+                {formData.is_recurring && (
+                  <div className="space-y-2">
+                    <Label htmlFor="target_month">Target Month</Label>
+                    <Select
+                      value={formData.target_month?.toString()}
+                      onValueChange={(value) => 
+                        setFormData({ ...formData, target_month: parseInt(value) })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <SelectItem key={i + 1} value={(i + 1).toString()}>
+                            {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="priority">Priority</Label>
                   <Select
@@ -404,6 +534,45 @@ const Goals = () => {
           </Dialog>
         </div>
 
+        {/* Month Selector */}
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <CalendarRange className="w-5 h-5 text-primary" />
+                <div>
+                  <Label htmlFor="month-selector" className="text-sm font-medium">Viewing Goals for:</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[200px] justify-start text-left font-normal",
+                          !selectedMonth && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedMonth ? format(selectedMonth, "MMMM yyyy") : "Pick a month"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedMonth}
+                        onSelect={(date) => date && setSelectedMonth(date)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              <Badge variant="secondary">
+                {currentMonthGoals.length} goals for {format(selectedMonth, 'MMMM yyyy')}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Summary Cards */}
         <div className="grid gap-6 md:grid-cols-4 mb-8">
           <Card>
@@ -411,7 +580,7 @@ const Goals = () => {
               <div className="flex items-center space-x-2">
                 <Target className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Goals</p>
+                  <p className="text-sm text-muted-foreground">Monthly Goals</p>
                   <p className="text-xl font-bold">{totalGoals}</p>
                 </div>
               </div>
@@ -422,7 +591,7 @@ const Goals = () => {
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-5 h-5 text-success" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Target</p>
+                  <p className="text-sm text-muted-foreground">Monthly Target</p>
                   <p className="text-xl font-bold">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{totalTarget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
@@ -433,7 +602,7 @@ const Goals = () => {
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-5 h-5 text-info" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Saved</p>
+                  <p className="text-sm text-muted-foreground">Monthly Saved</p>
                   <p className="text-xl font-bold">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{totalSaved.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
@@ -456,19 +625,20 @@ const Goals = () => {
 
         {/* Goals Grid */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {goals.length === 0 ? (
+          {currentMonthGoals.length === 0 ? (
             <div className="col-span-2 text-center py-12">
               <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No goals yet</h3>
-              <p className="text-muted-foreground mb-4">Create your first goal to start tracking your savings progress</p>
+              <h3 className="text-lg font-medium text-foreground mb-2">No goals for {format(selectedMonth, 'MMMM yyyy')}</h3>
+              <p className="text-muted-foreground mb-4">Create a goal to start tracking your savings progress for this month</p>
               <Button onClick={() => setIsCreateDialogOpen(true)}>
                 Create Goal
               </Button>
             </div>
           ) : (
-            goals.map((goal) => {
-              const percentage = (goal.current_amount / goal.target_amount) * 100;
-              const remaining = goal.target_amount - goal.current_amount;
+            currentMonthGoals.map((goal) => {
+              const currentProgress = getGoalProgress(goal.id);
+              const percentage = goal.target_amount > 0 ? (currentProgress / goal.target_amount) * 100 : 0;
+              const remaining = goal.target_amount - currentProgress;
               const daysLeft = Math.ceil((new Date(goal.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
               
               return (
@@ -477,6 +647,12 @@ const Goals = () => {
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">{goal.title}</CardTitle>
                       <div className="flex items-center space-x-2">
+                        {goal.is_recurring && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            <Repeat className="w-3 h-3 mr-1" />
+                            Monthly
+                          </Badge>
+                        )}
                         <Badge variant="outline" className={`text-xs ${
                           goal.priority === 'high' ? 'bg-destructive/10 text-destructive border-destructive/20' :
                           goal.priority === 'medium' ? 'bg-warning/10 text-warning border-warning/20' :
@@ -489,12 +665,16 @@ const Goals = () => {
                         </Badge>
                       </div>
                     </div>
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
+                      <span>Type:</span>
+                      <span className="font-medium">{getGoalType(goal)}</span>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-2xl font-bold text-success">
-                          {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{goal.current_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{currentProgress.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           of {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{goal.target_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} goal
@@ -555,7 +735,7 @@ const Goals = () => {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Edit Goal</DialogTitle>
             </DialogHeader>
@@ -639,6 +819,42 @@ const Goals = () => {
                 </Popover>
               </div>
 
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="edit-is_recurring"
+                  checked={formData.is_recurring}
+                  onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor="edit-is_recurring" className="text-sm">
+                  This is a monthly recurring goal
+                </Label>
+              </div>
+
+              {formData.is_recurring && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-target_month">Target Month</Label>
+                  <Select
+                    value={formData.target_month?.toString()}
+                    onValueChange={(value) => 
+                      setFormData({ ...formData, target_month: parseInt(value) })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <SelectItem key={i + 1} value={(i + 1).toString()}>
+                          {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="edit-priority">Priority</Label>
                 <Select
@@ -691,24 +907,58 @@ const Goals = () => {
                   step="0.01"
                   placeholder="0.00"
                   value={addMoneyFormData.amount}
-                  onChange={(e) => setAddMoneyFormData({ amount: e.target.value })}
+                  onChange={(e) => setAddMoneyFormData({ ...addMoneyFormData, amount: e.target.value })}
                   required
                 />
               </div>
 
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Current amount:</span>
-                <span className="font-medium">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{selectedGoal?.current_amount?.toFixed(2) || '0.00'}</span>
+              <div className="space-y-2">
+                <Label htmlFor="for_month">For Month</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !addMoneyFormData.for_month && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {addMoneyFormData.for_month ? (
+                        format(addMoneyFormData.for_month, "MMMM yyyy")
+                      ) : (
+                        <span>Pick a month</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={addMoneyFormData.for_month}
+                      onSelect={(date) => date && setAddMoneyFormData({ ...addMoneyFormData, for_month: date })}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Target amount:</span>
-                <span className="font-medium">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{selectedGoal?.target_amount?.toFixed(2) || '0.00'}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Remaining:</span>
-                <span className="font-medium">
-                  {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{(selectedGoal ? selectedGoal.target_amount - selectedGoal.current_amount : 0).toFixed(2)}
-                </span>
+
+              <div className="space-y-2 p-3 bg-muted rounded-lg">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Current progress ({format(addMoneyFormData.for_month, 'MMM yyyy')}):</span>
+                  <span className="font-medium">
+                    {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{getGoalProgress(selectedGoal?.id).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Target amount:</span>
+                  <span className="font-medium">{currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{selectedGoal?.target_amount?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>Remaining:</span>
+                  <span>
+                    {currencyMap[profile?.preferred_currency]?.symbol ?? "$"}{(selectedGoal ? selectedGoal.target_amount - getGoalProgress(selectedGoal.id) : 0).toFixed(2)}
+                  </span>
+                </div>
               </div>
 
               <Button type="submit" className="w-full">
